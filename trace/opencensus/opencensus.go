@@ -23,6 +23,9 @@ import (
 	"fmt"
 	"sync"
 
+	"contrib.go.opencensus.io/exporter/zipkin"
+	openzipkin "github.com/openzipkin/zipkin-go"
+	zipkinHTTP "github.com/openzipkin/zipkin-go/reporter/http"
 	"github.com/virtual-kubelet/virtual-kubelet/errdefs"
 	"github.com/virtual-kubelet/virtual-kubelet/log"
 	"github.com/virtual-kubelet/virtual-kubelet/trace"
@@ -36,6 +39,19 @@ const (
 	lErr   = "ERROR"
 	lFatal = "FATAL"
 )
+
+func init() {
+	localEndpoint, err := openzipkin.NewEndpoint("virtual-kubelet", "192.168.5.16:5454")
+	if err != nil {
+		log.L.Fatalf("Failed to create the local zipkinEndpoint: %v", err)
+	}
+
+	octrace.ApplyConfig(octrace.Config{DefaultSampler: octrace.AlwaysSample()})
+
+	reporter := zipkinHTTP.NewReporter("http://localhost:9411/api/v2/spans")
+	ze := zipkin.NewExporter(reporter, localEndpoint)
+	octrace.RegisterExporter(ze)
+}
 
 // Adapter implements the trace.Tracer interface for OpenCensus
 type Adapter struct{}

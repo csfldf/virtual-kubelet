@@ -50,6 +50,7 @@ func main() {
 		cancel()
 	}()
 
+	logrus.SetReportCaller(true)
 	log.L = logruslogger.FromLogrus(logrus.NewEntry(logrus.StandardLogger()))
 	trace.T = opencensus.Adapter{}
 
